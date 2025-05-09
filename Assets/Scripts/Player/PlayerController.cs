@@ -1,47 +1,80 @@
 using UnityEngine;
+using UnityEngine.AI;
 
-[RequireComponent(typeof(InputManager))]
+[RequireComponent(typeof(InputManager), typeof(NavMeshAgent))]
 public class PlayerController : MonoBehaviour
 {
     private InputManager inputMgr;
-    private IMovement movement;
-    private ICombat combat;
-    private ISkillCaster skillCaster;
+    private NavMeshAgent agent;
+    private GameObject currentIndicator;
+
+    [Header("指示器设置")]
+    public GameObject indicatorPrefab;       // 在 Inspector 中拖入指示器 Prefab
+    public float indicatorHeight = 0.05f;
+    public float arrivalThreshold = 0.1f;
 
     void Awake()
     {
         inputMgr = GetComponent<InputManager>();
-        movement = GetComponent<IMovement>();
-        combat = GetComponent<ICombat>();
-        skillCaster = GetComponent<ISkillCaster>();
+        agent = GetComponent<NavMeshAgent>();
     }
 
     void OnEnable()
     {
-        inputMgr.OnMove += HandleMove;
-        inputMgr.OnAttack += HandleAttack;
-        inputMgr.OnSkillCast += HandleSkillCast;
+        inputMgr.OnClickMove += HandleClickMove;     // 订阅点击移动事件
+        EventHandler.PlayerMove += OnPlayerMove;
     }
 
     void OnDisable()
     {
-        inputMgr.OnMove -= HandleMove;
-        inputMgr.OnAttack -= HandleAttack;
-        inputMgr.OnSkillCast -= HandleSkillCast;
+        inputMgr.OnClickMove -= HandleClickMove;
+        EventHandler.PlayerMove -= OnPlayerMove;
     }
 
-    void HandleMove(Vector2 dir)
+    private void OnPlayerMove(Vector3 targetPos)
     {
-        movement?.Move(new Vector3(dir.x, 0, dir.y));
+        transform.position = targetPos;
     }
 
-    void HandleAttack()
+
+    /// <summary>
+    /// 响应地面点击：生成指示器并设置 NavMeshAgent 目标
+    /// </summary>
+    void HandleClickMove(Vector3 targetPos)
     {
-        combat?.Attack();
+        // 销毁旧指示器
+        if (currentIndicator != null)
+            Destroy(currentIndicator);
+
+        Debug.Log("HanleClickMove");
+
+        // 在点击位置稍微抬高处实例化指示器
+        Vector3 spawnPos = new Vector3(
+            targetPos.x,
+            targetPos.y + indicatorHeight,
+            targetPos.z
+        );
+        currentIndicator = Instantiate(
+            indicatorPrefab,
+            spawnPos,
+            Quaternion.identity
+        );
+
+        // 设置寻路目标，启动自动寻路
+        agent.SetDestination(targetPos);
     }
 
-    void HandleSkillCast(int idx, Vector3 target)
+    void Update()
     {
-        skillCaster?.CastSkill(idx, target);
+        // 如果存在指示器，且路径已生成，检测剩余距离
+        if (currentIndicator != null && !agent.pathPending)
+        {
+            // 当 Agent 到达阈值范围内时，销毁指示器&#8203;:contentReference[oaicite:3]{index=3}
+            if (agent.remainingDistance <= arrivalThreshold)
+            {
+                Destroy(currentIndicator);
+                currentIndicator = null;
+            }
+        }
     }
 }

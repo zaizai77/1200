@@ -6,7 +6,7 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
     public static T Instance;
 
-    protected void Awake()
+    protected virtual void Awake()
     {
         if(Instance != null)
         {
@@ -18,7 +18,7 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
         }
     }
 
-    protected void OnDestroy()
+    protected virtual void OnDestroy()
     {
         if(Instance != null)
         {

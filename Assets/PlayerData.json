@@ -1,0 +1,12 @@
+{
+    "gold": 5,
+    "ownedSkillIDs": [
+        "Fireball",
+        "Heal",
+        "Ice",
+        "Bomb",
+        "Freeze",
+        "Shield"
+    ],
+    "equippedSkillIDs": []
+}

@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9814139ee88ef8e4fb0529d1df54a3a8, type: 3}
   m_Name: Fireball
   m_EditorClassIdentifier: 
-  skillName: FireaBall
+  skillName: Fireball
   icon: {fileID: 21300000, guid: 1103e56828ef4764d937d56333e7dbd1, type: 3}
   cooldown: 2
-  effectPrefab: {fileID: 0}
+  speed: 5
+  price: 1
+  effectPrefab: {fileID: 4345087296935851001, guid: ca3fe1629cd15704b9a92996c10a1eaa, type: 3}
   castRange: 5
   damage: 10
+  hitSound: {fileID: 0}
+  behaviorPrefab: {fileID: 1158408777784765414, guid: e02659194941bdd4f8953f998c76dfb0, type: 3}
