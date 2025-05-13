@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Shield
   icon: {fileID: 21300000, guid: 6e5d3386f46fb38479cd6e1da1556802, type: 3}
-  cooldown: 1
+  cooldown: 10
   speed: 2
-  price: 1
-  effectPrefab: {fileID: 0}
-  castRange: 5
+  price: 2
+  effectPrefab: {fileID: 1418488042751900430, guid: 8f9151ee19e027f40a3529cbd8f61759, type: 3}
+  castRange: 0
   damage: 10
   hitSound: {fileID: 0}
-  behaviorPrefab: {fileID: 0}
+  behaviorPrefab: {fileID: 6604208910617259006, guid: b38ac70dc216c0a4781a30320cad2cdb, type: 3}
+  description: "\u4EA7\u751F\u4E00\u4E2A\u62A4\u76FE"

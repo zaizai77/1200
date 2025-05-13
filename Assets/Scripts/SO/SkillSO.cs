@@ -19,6 +19,9 @@ public class SkillSO : ScriptableObject
     [Header("Behavior")]
     public GameObject behaviorPrefab; // 包含 ISkillBehavior 组件的预制体
 
+    [Header("技能描述")]
+    public string description;
+
     /// <summary>
     /// 执行技能逻辑：实例化特效并在指定目标位置触发效果  
     /// </summary>

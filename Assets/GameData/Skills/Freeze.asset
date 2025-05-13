@@ -14,11 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: Freeze
   icon: {fileID: 21300000, guid: 2bf6753f02888414bb3b5317af8647b5, type: 3}
-  cooldown: 1
+  cooldown: 5
   speed: 2
-  price: 1
+  price: 3
   effectPrefab: {fileID: 0}
-  castRange: 5
+  castRange: 2
   damage: 10
   hitSound: {fileID: 0}
-  behaviorPrefab: {fileID: 0}
+  behaviorPrefab: {fileID: 953759797981988559, guid: fd0e1520af844654a8016c32c6a99467, type: 3}
+  description: "\u51BB\u4F4F\u654C\u4EBA"

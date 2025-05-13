@@ -35,6 +35,12 @@ public class HealBehavior : MonoBehaviour, ISkillBehavior
             health.Heal(skillData.damage);
         }
 
+        var bossHeal = caster.GetComponent<BossBase>();
+        if(bossHeal != null)
+        {
+            bossHeal.Heal(skillData.damage);
+        }
+
         // 3. 播放音效
         if (healSoundClip != null)
         {

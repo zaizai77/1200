@@ -1,3 +1,4 @@
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,6 +8,11 @@ public class PlayerController : MonoBehaviour
     private InputManager inputMgr;
     private NavMeshAgent agent;
     private GameObject currentIndicator;
+
+    [Header("冰冻")]
+    private bool isFrozen = false;
+    private float frozenTimer = 0f;
+    public ParticleSystem frozenEffect;
 
     [Header("指示器设置")]
     public GameObject indicatorPrefab;       // 在 Inspector 中拖入指示器 Prefab
@@ -66,6 +72,15 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (isFrozen)
+        {
+            frozenTimer -= Time.deltaTime;
+            if (frozenTimer <= 0f)
+                Unfreeze();
+
+            return;
+        }
+
         // 如果存在指示器，且路径已生成，检测剩余距离
         if (currentIndicator != null && !agent.pathPending)
         {
@@ -76,5 +91,23 @@ public class PlayerController : MonoBehaviour
                 currentIndicator = null;
             }
         }
+    }
+
+    public void Freeze(float duration)
+    {
+        if (isFrozen) return;
+        isFrozen = true;
+        frozenTimer = duration;
+
+        frozenEffect.gameObject.SetActive(true);
+        frozenEffect.Play();
+    }
+
+    private void Unfreeze()
+    {
+        isFrozen = false;
+
+        frozenEffect.gameObject.SetActive(false);
+        frozenEffect.Stop();
     }
 }

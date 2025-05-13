@@ -16,9 +16,10 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 98eecdaa232baf049bf4123358057dc3, type: 3}
   cooldown: 1
   speed: 2
-  price: 1
+  price: 4
   effectPrefab: {fileID: 7680389576569262476, guid: 371911244a5c4f049ad6970c3cc9a8a3, type: 3}
   castRange: 5
-  damage: 10
+  damage: 15
   hitSound: {fileID: 0}
   behaviorPrefab: {fileID: 364820657966425441, guid: 23bab316a8e52944aac568ae1a554a87, type: 3}
+  description: "\u53D1\u5C04\u4E00\u4E2A\u70B8\u5F39"

@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa7ff451e93f8354aab53b373b1c18b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  explosionEffect: {fileID: 0}
+  explosionEffect: {fileID: 7634420434017284398, guid: b9ed127bfed05be4db493ca51e744a76, type: 3}
   explosionSfx: {fileID: 8300000, guid: 48674c585ae37284aa5366d9fb4daf13, type: 3}
 --- !u!65 &-2405916978799757896
 BoxCollider:

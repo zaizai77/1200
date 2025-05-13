@@ -44,5 +44,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 360fe0c2de88935479767b9c83db136b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healEffect: {fileID: 0}
-  healSoundClip: {fileID: 0}
+  healEffect: {fileID: 5869148917198154499, guid: ce78890a2e716f24e88078e9bacc7604, type: 3}
+  healSoundClip: {fileID: 8300000, guid: c94f89d02b7d8f042bfc0ce37ac416a5, type: 3}

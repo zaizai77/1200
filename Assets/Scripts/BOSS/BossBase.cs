@@ -1,3 +1,4 @@
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -27,6 +28,8 @@ public abstract class BossBase : MonoBehaviour
 
     protected NavMeshAgent agent;
     private float moveTimer;
+    private Vector3 initialPosition;
+    private const float AREA_SIZE = 8f;
 
     // 用于可视化：上次射线检测的命中点与结果
     private Vector3 lastHitPoint;
@@ -38,6 +41,11 @@ public abstract class BossBase : MonoBehaviour
     private bool canAttack;
     private GameObject player;
 
+    [Header("冻结")]
+    private bool isFrozen = false;
+    public ParticleSystem frozenEffect;
+    private float frozenTimer = 0f;
+
     protected virtual void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -46,6 +54,8 @@ public abstract class BossBase : MonoBehaviour
         player = GameObject.FindWithTag("Player").gameObject;
 
         currentHealth = maxHealth;
+
+        initialPosition = transform.position;
     }
 
     private void OnEnable()
@@ -70,8 +80,33 @@ public abstract class BossBase : MonoBehaviour
             return;
         }
 
+        if (isFrozen)
+        {
+            frozenTimer -= Time.deltaTime;
+            if (frozenTimer <= 0f)
+                Unfreeze();
+            return;
+        }
+
         HandleMovement();
         HandleSightAndAttack();
+    }
+
+    public void Freeze(float duration)
+    {
+        if (isFrozen) return;
+        isFrozen = true;
+        frozenEffect.gameObject.SetActive(true);
+        frozenEffect.Play();
+        frozenTimer = duration; 
+    }
+
+    private void Unfreeze()
+    {
+        isFrozen = false;
+
+        frozenEffect.gameObject.SetActive(false);
+        frozenEffect.Stop();
     }
 
     public void OnAfterSceneLoad()
@@ -94,6 +129,14 @@ public abstract class BossBase : MonoBehaviour
 
     public void TakeDamage(float amount)
     {
+        var shield = GetComponent<Shield>();
+        if (shield != null)
+        {
+            float leftover = shield.Absorb(amount);
+            if (leftover <= 0f) return; // 伤害完全被护盾吸收
+            amount = leftover;
+        }
+
         currentHealth -= amount;
         currentHealth = Mathf.Max(currentHealth, 0f);
         
@@ -123,40 +166,50 @@ public abstract class BossBase : MonoBehaviour
         moveTimer -= Time.deltaTime;
         if (moveTimer <= 0f)
         {
-            Vector3 rndTarget = GetRandomPointInArea();
-            agent.SetDestination(rndTarget);    // 自动寻路:contentReference[oaicite:3]{index=3}
+            Vector3 rndTarget = GetClampedPlayerPoint();
+            agent.SetDestination(rndTarget);    // 自动寻路
             moveTimer = moveInterval;
         }
+    }
+
+    /// <summary>
+    /// 获取在 8×8 区域内、且尽量靠近玩家的目标点
+    /// </summary>
+    private Vector3 GetClampedPlayerPoint()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj == null)
+        {
+            // 找不到玩家就呆在原地
+            return transform.position;
+        }
+
+        Vector3 playerPos = playerObj.transform.position;
+        float halfSize = AREA_SIZE * 0.5f;
+
+        // 分别对 X 和 Z 做 Clamp，Y 轴保持不变
+        float clampedX = Mathf.Clamp(playerPos.x,
+                                     initialPosition.x - halfSize,
+                                     initialPosition.x + halfSize);
+
+        float clampedZ = Mathf.Clamp(playerPos.z,
+                                     initialPosition.z - halfSize,
+                                     initialPosition.z + halfSize);
+
+        return new Vector3(clampedX, transform.position.y, clampedZ);
     }
 
     /// <summary>计算区域内随机点</summary>
     private Vector3 GetRandomPointInArea()
     {
-        float x = Random.Range(areaMin.x, areaMin.x + areaSize.x);  // 区间随机:contentReference[oaicite:4]{index=4}
-        float z = Random.Range(areaMin.y, areaMin.y + areaSize.y);
-        return new Vector3(x, transform.position.y, z);
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj == null) return new Vector3();
+        Transform player = playerObj.transform;
+        return new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
     }
 
-    /// <summary>
-    /// 视野检测 + 射线遮挡检查，视线畅通时触发攻击
-    /// </summary>
     private void HandleSightAndAttack()
     {
-        // 找到玩家
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj == null) return;
-        Transform player = playerObj.transform;
-
-        // 1. 判断玩家是否在视野锥内
-        Vector3 eyePos = transform.position + eyeOffset;
-        Vector3 toPlayer = (player.position + Vector3.up * 0.5f - eyePos).normalized;
-        float angle = Vector3.Angle(transform.forward, toPlayer);  // 计算夹角 :contentReference[oaicite:4]{index=4}
-        if (angle > viewAngle * 0.5f ||
-            Vector3.Distance(eyePos, player.position) > viewDistance)
-        {
-            return;
-        }
-
         if(currentTime >= fireTime)
         {
             CastSkill();
@@ -172,8 +225,9 @@ public abstract class BossBase : MonoBehaviour
     public virtual void CastSkill()
     {
         int index = Random.Range(0, skills.Length);
-
+        
         SkillManager.Instance.CastSkill(skills[index], gameObject, player.transform.position);
+        Debug.Log(skills[index].name);
     }
 
     /// <summary>

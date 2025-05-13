@@ -19,6 +19,7 @@ public class UIManager : Singleton<UIManager>
     [Header("时间设置")]
     public float totalTime = 120f;    // 倒计时时长，单位秒
     private float remainingTime;      // 剩余时间
+    private bool canCountTime = false;
 
     [Header("技能相关")]
     public PlayerData playerData;
@@ -35,6 +36,15 @@ public class UIManager : Singleton<UIManager>
     [Header("游戏结束界面")]
     public GameObject gameEndPanel;
     public Text gameOverText;
+
+    // 新增：存储当前技能按钮
+    private struct SkillBtnEntry
+    {
+        public SkillSO skill;
+        public Button button;
+        public Image cooldownOverlay;
+    }
+    private List<SkillBtnEntry> skillBtnEntries = new List<SkillBtnEntry>();
 
     private BossBase boss;
 
@@ -62,6 +72,17 @@ public class UIManager : Singleton<UIManager>
     private void OnAfterSceneLoad()
     {
         boss = GameObject.FindWithTag("Boss").gameObject.GetComponent<BossBase>();
+
+        if(SceneManager.GetActiveScene().name == "BattleScene")
+        {
+            canCountTime = true;
+        }
+        else
+        {
+            countDownText.text = "";
+            canCountTime = false;
+        }
+
     }
 
     public void StartGame()
@@ -73,9 +94,14 @@ public class UIManager : Singleton<UIManager>
 
         gameOver = false;
 
+        playerEnegySlider.value = 1;
+        playerHealthSlider.value = 1;
+        enemyHealthSlider.value = 1;
+
         RefreshSkillBar();
         RestartTimer();
         UpdateUI();
+        coinText.text = "Skill Coin:" + playerData.gold;
         TransitionManager.Instance.Transition("BattleScene");
     }
 
@@ -86,8 +112,18 @@ public class UIManager : Singleton<UIManager>
             return;
         }
 
+        //技能快捷键
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            PlayerKeyCode(0);
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+            PlayerKeyCode(1);
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+            PlayerKeyCode(2);
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+            PlayerKeyCode(3);
+
         // 如果时间已归零，则不再继续计时
-        if (remainingTime <= 0f) return;
+        if (remainingTime <= 0f || canCountTime == false) return;
 
         // 每帧减少 elapsed 时间
         remainingTime -= Time.deltaTime;
@@ -98,16 +134,25 @@ public class UIManager : Singleton<UIManager>
             OnTimerEnd();
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-            PlayerKeyCode(0);
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-            PlayerKeyCode(1);
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-            PlayerKeyCode(2);
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-            PlayerKeyCode(3);
-
         UpdateUI();
+        UpdateCooldownUI();
+    }
+
+    private void UpdateCooldownUI()
+    {
+        foreach (var entry in skillBtnEntries)
+        {
+            float rem = SkillManager.Instance.GetRemainingCooldown(entry.skill);
+            float max = entry.skill.cooldown;
+
+            // 遮罩填充比例：1 表示完全冷却中（遮满），0 表示可用
+            if (entry.cooldownOverlay != null)
+                entry.cooldownOverlay.fillAmount = rem / max;
+
+            // 当冷却完毕，按钮可交互，否则禁用
+            if (entry.button != null)
+                entry.button.interactable = (rem <= 0f);
+        }
     }
 
     private void OnTimerEnd()
@@ -131,7 +176,7 @@ public class UIManager : Singleton<UIManager>
         // 文本：MM:SS 格式
         int minutes = Mathf.FloorToInt(remainingTime / 60f);
         int seconds = Mathf.FloorToInt(remainingTime % 60f);
-        countDownText.text = "倒计时:" + $"{minutes:00}:{seconds:00}";
+        countDownText.text = "Time:" + $"{minutes:00}:{seconds:00}";
     }
 
     public void GameOver(bool isWin)
@@ -142,11 +187,11 @@ public class UIManager : Singleton<UIManager>
 
         if(isWin)
         {
-            gameOverText.text = "你胜利了!";
+            gameOverText.text = "You Win!";
         }
         else
         {
-            gameOverText.text = "你失败了!";
+            gameOverText.text = "You Lose!";
         }
     }
 
@@ -170,6 +215,10 @@ public class UIManager : Singleton<UIManager>
         battlePanel.transform.SetAsLastSibling();
         RefreshSkillBar();
 
+        playerEnegySlider.value = 1;
+        playerHealthSlider.value = 1;
+        enemyHealthSlider.value = 1;
+        coinText.text = "Skill Coin:" + playerData.gold;
         TransitionManager.Instance.Transition("XunLianChang");
     }
 
@@ -198,6 +247,8 @@ public class UIManager : Singleton<UIManager>
         foreach (Transform t in skillTrans)
             Destroy(t.gameObject);
 
+        skillBtnEntries.Clear();
+
         // 2. 遍历已装备技能列表
         foreach (string skillId in playerData.equippedSkillIDs)
         {
@@ -209,6 +260,19 @@ public class UIManager : Singleton<UIManager>
             var btnObj = Instantiate(skillBtnPrefab, skillTrans);
             var ui = btnObj.GetComponent<SkillButtonUI>();
             ui.Init(skill, () => OnSkillButtonClicked(skill));
+
+            // 假设 SkillButtonUI 下有一个名为 "CooldownOverlay" 的 Image
+            var overlay = btnObj.transform.Find("CooldownOverlay")?.GetComponent<Image>();
+            if (overlay == null)
+                Debug.LogWarning($"Button for {skill.skillName} needs a child 'CooldownOverlay' Image");
+
+            // 缓存
+            skillBtnEntries.Add(new SkillBtnEntry
+            {
+                skill = skill,
+                button = btnObj.GetComponent<Button>(),
+                cooldownOverlay = overlay
+            });
         }
     }
 
@@ -239,7 +303,7 @@ public class UIManager : Singleton<UIManager>
     {
         playerData.gold++;
         //刷新UI；
-        coinText.text = "金币:" + playerData.gold;
+        coinText.text = "Skill Coin:" + playerData.gold;
     }
 
     public void UpdateHealthBar(float healthValue)

@@ -33,7 +33,7 @@ public class ShopManager : MonoBehaviour
 
     void RefreshAllUI()
     {
-        goldText.text = playerData.gold.ToString();
+        goldText.text = "Skill Coin:" + playerData.gold.ToString();
 
         RefreshShopUI();
         RefreshOwnedUI();

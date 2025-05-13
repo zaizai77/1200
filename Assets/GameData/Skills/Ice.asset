@@ -18,7 +18,8 @@ MonoBehaviour:
   speed: 5
   price: 1
   effectPrefab: {fileID: 3826565630344504130, guid: 47a160cdfe56adb4aa8a031c65febcc8, type: 3}
-  castRange: 5
+  castRange: 2
   damage: 10
   hitSound: {fileID: 0}
-  behaviorPrefab: {fileID: 1158408777784765414, guid: e02659194941bdd4f8953f998c76dfb0, type: 3}
+  behaviorPrefab: {fileID: 1224249737241137791, guid: 408dd76d9ae59994a8a79d3301008256, type: 3}
+  description: "\u53D1\u5C04\u4E00\u4E2A\u629B\u7269\u7EBF\u51B0\u7403"
